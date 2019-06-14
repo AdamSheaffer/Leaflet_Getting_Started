@@ -1,57 +1,53 @@
 import React, { Component } from 'react';
 import L from 'leaflet';
 
+const dummyDataPath = [
+  [36.134842046153565, -86.75954818725587],
+  [36.1339408866672, -86.75899028778078],
+  [36.13009351246281, -86.75499916076662],
+  [36.12957358256369, -86.75461292266846]
+];
+
 export default class Map extends Component {
-
-  goToCurrentLocation = () => {
-    if (!this.map) return;
-
-    navigator.geolocation.getCurrentPosition(pos => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-
-      this.map.setView([lat, lon], 16);
-
-      // add a marker to my location
-      L.marker([lat, lon])
-        .bindPopup('This is your current <strong>Location</strong>')
-        .addTo(this.map);
-    }, err => {
-      console.log(err);
-    });
-
-    // draw a polyline
-    L.polyline([
-      [36.13427, -86.759205],
-      [36.130111, -86.754999],
-      [36.125431, -86.752424]
-    ]).addTo(this.map);
-  }
+  map = null;
 
   componentDidMount() {
     // create map
-    this.map = L.map('map')
-      .setView([36.2, -86.8], 14)
+    this.map = L.map('map').setView([36, -86.5], 10);
 
-    // add tiles to map
+    // add basemap
     L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
       attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
       maxZoom: 18,
       id: 'mapbox.streets',
-      accessToken: 'pk.eyJ1IjoiYWRhbXNoZWFmZmVyIiwiYSI6ImNqa2s1OWRieDA4emYzdnBiZnF1ZmU1b3AifQ.W6pXH3av-6y3UzRO8dAIMg'
+      accessToken: 'YOUR MAPBOX API KEY'
     }).addTo(this.map);
 
-    // track where user clicks
-    this.map.on('click', e => {
-      console.log(`clicked on  ${e.latlng}`);
+
+    navigator.geolocation.getCurrentPosition(position => {
+      const coords = position.coords;
+      this.map.setView([coords.latitude, coords.longitude], 16);
+
+      L.marker([coords.latitude, coords.longitude])
+        .bindPopup('This is your current <strong>location</strong>')
+        .addTo(this.map);
     });
+
+    // log user clicks
+    this.map.on('click', event => {
+      const lat = event.latlng.lat
+      const lng = event.latlng.lng;
+      console.log(lat, lng);
+    });
+
+    L.polyline(dummyDataPath)
+      .addTo(this.map);
   }
 
   render() {
     return (
       <React.Fragment>
         <div id="map"></div>
-        <button onClick={this.goToCurrentLocation}>Go to current location</button>
       </React.Fragment>
     )
   }
